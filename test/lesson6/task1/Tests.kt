@@ -106,6 +106,8 @@ class Tests {
         assertEquals(-1, firstDuplicateIndex("Привет"))
         assertEquals(9, firstDuplicateIndex("Он пошёл в в школу"))
         assertEquals(40, firstDuplicateIndex("Яблоко упало на ветку с ветки оно упало на на землю"))
+        assertEquals(42, firstDuplicateIndex("Яблоко упалона на ветку с ветки оно упало на на землю"))
+        assertEquals(0, firstDuplicateIndex("Я я упалона на ветку с ветки оно упало на на землю"))
         assertEquals(9, firstDuplicateIndex("Мы пошли прямо Прямо располагался магазин"))
     }
 
@@ -113,6 +115,7 @@ class Tests {
     @Tag("6")
     fun mostExpensive() {
         assertEquals("", mostExpensive(""))
+        assertEquals("a", mostExpensive("a 0"))
         assertEquals("Курица", mostExpensive("Хлеб 39.9; Молоко 62.5; Курица 184.0; Конфеты 89.9"))
         assertEquals("Вино", mostExpensive("Вино 255.0"))
     }
