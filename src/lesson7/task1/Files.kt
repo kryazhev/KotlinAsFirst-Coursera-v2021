@@ -3,6 +3,7 @@
 package lesson7.task1
 
 import java.io.File
+import java.util.*
 
 // Урок 7: работа с файлами
 // Урок интегральный, поэтому его задачи имеют сильно увеличенную стоимость
@@ -63,7 +64,14 @@ fun alignFile(inputName: String, lineLength: Int, outputName: String) {
  * Подчёркивание в середине и/или в конце строк значения не имеет.
  */
 fun deleteMarked(inputName: String, outputName: String) {
-    TODO()
+    val writer = File(outputName).bufferedWriter()
+    for (line in File(inputName).readLines()) {
+        if (!line.startsWith("_")) {
+            writer.write(line)
+            writer.newLine()
+        }
+    }
+    writer.close()
 }
 
 /**
@@ -75,7 +83,28 @@ fun deleteMarked(inputName: String, outputName: String) {
  * Регистр букв игнорировать, то есть буквы е и Е считать одинаковыми.
  *
  */
-fun countSubstrings(inputName: String, substrings: List<String>): Map<String, Int> = TODO()
+fun countSubstrings(inputName: String, substrings: List<String>): Map<String, Int> {
+    val lowerSubstrings = substrings.map { el -> el.toLowerCase() }
+
+    val result = mutableMapOf<String, Int>()
+    for (substring in substrings) {
+        result[substring] = 0
+    }
+
+    for (line in File(inputName).readLines()) {
+        for ((index, substring) in lowerSubstrings.withIndex()) {
+            var searchIndex = -1
+            do {
+                searchIndex = line.toLowerCase().indexOf(substring, startIndex = searchIndex + 1)
+                if (searchIndex != -1) {
+                    result[substrings[index]] = result.getOrDefault(substrings[index], 0) + 1
+                }
+            } while (searchIndex != -1)
+        }
+    }
+
+    return result
+}
 
 
 /**
@@ -92,7 +121,41 @@ fun countSubstrings(inputName: String, substrings: List<String>): Map<String, In
  *
  */
 fun sibilants(inputName: String, outputName: String) {
-    TODO()
+    val writer = File(outputName).bufferedWriter()
+    for (line in File(inputName).readLines()) {
+        for ((index, char) in line.withIndex()) {
+            var modified = char
+            val lowered = char.toLowerCase()
+
+            if (lowered == 'ы' && index > 1 && (
+                        line[index-1].toLowerCase() == 'ж' ||
+                        line[index-1].toLowerCase() == 'ш')) {
+                modified = if (char.isLowerCase()) { 'и' } else { 'И' }
+            }
+
+            if (lowered == 'ю' && index > 1 && (
+                                line[index-1].toLowerCase() == 'ж' ||
+                                line[index-1].toLowerCase() == 'ч' ||
+                                line[index-1].toLowerCase() == 'ш' ||
+                                line[index-1].toLowerCase() == 'щ')) {
+                modified = if (char.isLowerCase()) { 'у' } else { 'У' }
+            }
+
+            if (lowered == 'я' && index > 1 && (
+                                line[index-1].toLowerCase() == 'ж' ||
+                                line[index-1].toLowerCase() == 'ч' ||
+                                line[index-1].toLowerCase() == 'ш' ||
+                                line[index-1].toLowerCase() == 'щ')) {
+                modified = if (char.isLowerCase()) { 'а' } else { 'А' }
+            }
+
+            writer.write(modified.toString())
+        }
+
+        writer.newLine()
+    }
+
+    writer.close()
 }
 
 /**
@@ -113,7 +176,27 @@ fun sibilants(inputName: String, outputName: String) {
  *
  */
 fun centerFile(inputName: String, outputName: String) {
-    TODO()
+    val writer = File(outputName).bufferedWriter()
+    var longest = ""
+    for (line in File(inputName).readLines()) {
+        val trimmed = line.trim()
+        if (longest.length < trimmed.length) {
+            longest = trimmed
+        }
+    }
+
+    for (line in File(inputName).readLines()) {
+        val trimmed = line.trim()
+        val alignLength = longest.length - trimmed.length
+        for (i in 1..alignLength / 2) {
+            writer.write(" ")
+        }
+        writer.write(trimmed)
+
+        writer.newLine()
+    }
+
+    writer.close()
 }
 
 /**
@@ -167,8 +250,33 @@ fun alignFileByWidth(inputName: String, outputName: String) {
  * Ключи в ассоциативном массиве должны быть в нижнем регистре.
  *
  */
-fun top20Words(inputName: String): Map<String, Int> = TODO()
+fun top20Words(inputName: String): Map<String, Int> {
+    val pattern = "[-0123456789 ,.;:!?—«»’()IVXM\"*àâéèêç]"
+    val map: MutableMap<String, Int> = mutableMapOf()
 
+    for (line in File(inputName).readLines()) {
+        val parts = line.split(Regex(pattern))
+
+        for (word in parts) {
+            val lowered = word.toLowerCase()
+            if (lowered != "") {
+                map[lowered] = map.getOrDefault(lowered, 0) + 1
+            }
+        }
+    }
+
+    val result = mutableMapOf<String, Int>()
+    var count = 20
+    for ((key, value) in map.entries.sortedBy { e -> e.value }.reversed()) {
+        result[key] = value
+        count--
+        if (count < 0) {
+            break
+        }
+    }
+
+    return result
+}
 /**
  * Средняя (14 баллов)
  *
@@ -205,7 +313,24 @@ fun top20Words(inputName: String): Map<String, Int> = TODO()
  * Обратите внимание: данная функция не имеет возвращаемого значения
  */
 fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: String) {
-    TODO()
+    val normalized = mutableMapOf<Char, String>()
+    for (entry in dictionary) {
+        normalized[entry.key.toLowerCase()] = entry.value.toLowerCase()
+    }
+
+    val writer = File(outputName).bufferedWriter()
+    for (line in File(inputName).readLines()) {
+        for (char in line) {
+            val out = normalized.getOrDefault(char.toLowerCase(), char.toString())
+            if (char.isUpperCase()) {
+                writer.write(out.capitalize())
+            } else {
+                writer.write(out)
+            }
+        }
+        writer.newLine()
+    }
+    writer.close()
 }
 
 /**
@@ -233,7 +358,33 @@ fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: 
  * Обратите внимание: данная функция не имеет возвращаемого значения
  */
 fun chooseLongestChaoticWord(inputName: String, outputName: String) {
-    TODO()
+    val map: TreeMap<Int, MutableSet<String>> = TreeMap<Int, MutableSet<String>>(Collections.reverseOrder())
+
+    val writer = File(outputName).bufferedWriter()
+    for (word in File(inputName).readLines()) {
+        val lowered = word.toLowerCase()
+
+        val letters = mutableMapOf<Char, Boolean>()
+        var countOfLetters = 0
+
+        for (char in lowered) {
+            if (!letters.containsKey(char)) {
+                countOfLetters++
+                letters[char] = true
+            }
+        }
+
+        val set = map.computeIfAbsent(countOfLetters) { linkedSetOf() }
+        set.add(word)
+    }
+
+    for (set in map.values) {
+        writer.write(set.joinToString(", ") { it })
+        writer.newLine()
+        break;
+    }
+
+    writer.close()
 }
 
 /**
